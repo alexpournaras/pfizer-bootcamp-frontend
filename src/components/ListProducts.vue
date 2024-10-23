@@ -2,9 +2,22 @@
     <div class="container">
         <h2 class="title">Products Management</h2>
 
-        <input type="text" v-model="searchQuery" placeholder="Search products..." class="search-bar" />
+
+        <div class="search-container">
+            <input type="text" v-model="searchQuery" placeholder="Search products..." class="search-bar" />
+            <button class="search-btn" @click="performSearch">Search</button>
+            <button v-if="searchResultsExist && !noResultsMessage" class="go-back-btn" @click="goBackToList">Go Back to List</button>
+        </div>
+
 
         <button class="add-btn" @click="goToAddPage">+ Add Product</button>
+
+        <!-- Show message if no products match the search query -->
+        <p v-if="noResultsMessage" class="error-message">
+            {{ noResultsMessage }}
+            <button class="go-back-btn" @click="goBackToList">Go Back to List</button>
+
+        </p>
 
         <table class="product-table">
             <thead>
@@ -50,6 +63,9 @@ export default {
         return {
             products: [],
             searchQuery: '',
+            noResultsMessage: '', 
+            searchResultsExist: false, 
+            allProducts: [], 
         };
     },
     mounted() {
@@ -58,11 +74,49 @@ export default {
     methods: {
         async fetchProducts() {
             try {
-                const response = await getProducts();
-                this.products = response.data;
+                const response = await getProducts(); // Fetch all products
+                this.allProducts = response.data; // Store all fetched products
+                this.products = [...this.allProducts]; // Initialize products with all products
+                this.noResultsMessage = ''; // Reset no results message
             } catch (error) {
                 console.error('Error fetching products:', error.message);
             }
+        },
+
+        performSearch() {
+           
+            const query = this.searchQuery.toLowerCase();
+            const matchingProducts = this.allProducts.filter(product => {
+                return (
+                    product.name.toLowerCase().includes(query) ||
+                    product.batch_number.toLowerCase().includes(query) ||
+                    product.category.toLowerCase().includes(query) ||
+                    product.active_ingredients.some(ingredient =>
+                        ingredient.toLowerCase().includes(query)
+                    ) ||
+                    product.research_status.toLowerCase().includes(query) ||
+                    product.id.toString().includes(query) ||
+                    product.manufacturing_date.includes(query) ||
+                    product.expiration_date.includes(query)
+                );
+            });
+
+            this.products = matchingProducts;
+
+            // Update products to match only the filtered products
+            if (matchingProducts.length > 0) {
+                this.noResultsMessage = ''; 
+
+                this.searchResultsExist = true; 
+
+            } else {
+                this.noResultsMessage = `❌ ERROR: No products found matching your search query. 
+                Please check your input and try again or go back to the full list`; 
+
+                this.searchResultsExist = false; 
+            }
+            
+            this.products = matchingProducts;
         },
         goToAddPage() {
             this.$router.push({ name: 'AddProduct' });
@@ -72,6 +126,13 @@ export default {
         },
         goToShowPage(productId) {
             this.$router.push({ name: 'ShowProduct', params: { productId }, props: true });
+        },
+        goBackToList() {
+            this.fetchProducts().then(() => { 
+            this.searchQuery = ''; 
+            this.noResultsMessage = ''; 
+            this.searchResultsExist = false; 
+    });
         },
         async deleteProduct(productId) {
             if (confirm('Are you sure you want to delete this product?')) {
@@ -83,6 +144,27 @@ export default {
                 }
             }
         },
+    },
+
+
+    computed: {
+        filteredProducts() {
+            const query = this.searchQuery.toLowerCase();
+            return this.allProducts.filter(product => {
+                return (
+                    product.name.toLowerCase().includes(query) ||
+                    product.batch_number.toLowerCase().includes(query) ||
+                    product.category.toLowerCase().includes(query) ||
+                    product.active_ingredients.some(ingredient =>
+                        ingredient.toLowerCase().includes(query)
+                    ) ||
+                    product.research_status.toLowerCase().includes(query) ||
+                    product.id.toString().includes(query) ||
+                    product.manufacturing_date.includes(query) ||
+                    product.expiration_date.includes(query)
+                );
+            });
+        }
     },
 };
 </script>
@@ -105,15 +187,54 @@ export default {
     font-family: Arial, sans-serif;
 }
 
+.search-container {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    margin-bottom: 20px; 
+}
+
 /* Search Bar Styling */
 .search-bar {
     display: block;
-    margin: 0 auto 10px;
     padding: 10px;
     width: 50%;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 16px;
+}
+
+/* Button Styling */
+.search-btn {
+    display: block;
+    margin-left: 10px; 
+    border: none;
+    padding: 10px 20px;
+    background-color: #1a1a1a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search-btn:hover {
+    background-color: #333;
+}
+
+.go-back-btn{
+    display: block;
+    margin: 10px 10px;
+    padding: 10px 20px;
+    background-color: #e61515;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+
+}
+
+.go-back-btn:hover {
+    background-color: #d88787;
 }
 
 /* Button Styling */
@@ -130,6 +251,18 @@ export default {
 
 .add-btn:hover {
     background-color: #333;
+}
+
+.error-message {
+    color: red;
+    font-weight: bold;
+    background-color: #f8d7da; 
+    padding: 5px;  
+    border: 1px solid red; 
+    border-radius: 5px;  
+    display: flex; 
+    align-items: center; 
+    margin-bottom: 10px; 
 }
 
 /* Table Styling */
