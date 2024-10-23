@@ -1,39 +1,50 @@
 <template>
     <div class="container">
-        <h2 class="title">Product Details</h2>
-        
-        <div class="product-details" v-if="product">
-            <div class="detail-item">
-                <strong>ID:</strong> <span>{{ product.id }}</span>
+        <h2 class="title">Product name</h2>
+
+        <form v-if="product" @submit.prevent="updateProduct">
+            <div class="form-group">
+                <label for="name">Product Name:</label>
+                <input type="text" v-model="product.name" id="name" class="form-input" required />
             </div>
-            <div class="detail-item">
-                <strong>Name:</strong> <span>{{ product.name }}</span>
+
+            <div class="form-group">
+                <label for="category">Category:</label>
+                <input type="text" v-model="product.category" id="category" class="form-input" required />
             </div>
-            <div class="detail-item">
-                <strong>Category:</strong> <span>{{ product.category }}</span>
+
+            <div class="form-group">
+                <label for="active_ingredients">Active Ingredients (comma-separated):</label>
+                <input type="text" v-model="product.active_ingredients" id="active_ingredients" class="form-input" required />
             </div>
-            <div class="detail-item">
-                <strong>Active Ingredients:</strong> <span>{{ product.active_ingredients.join(', ') }}</span>
+
+            <div class="form-group">
+                <label for="batch_number">Batch Number:</label>
+                <input type="text" v-model="product.batch_number" id="batch_number" class="form-input" required />
             </div>
-            <div class="detail-item">
-                <strong>Batch Number:</strong> <span>{{ product.batch_number }}</span>
+
+            <div class="form-group">
+                <label for="research_status">Research Status:</label>
+                <input type="text" v-model="product.research_status" id="research_status" class="form-input" required />
             </div>
-            <div class="detail-item">
-                <strong>Research Status:</strong> <span>{{ product.research_status }}</span>
+
+            <div class="form-group">
+                <label for="manufacturing_date">Manufacturing Date:</label>
+                <input type="date" v-model="product.manufacturing_date" id="manufacturing_date" class="form-input" required />
             </div>
-            <div class="detail-item">
-                <strong>Manufacturing Date:</strong> <span>{{ product.manufacturing_date }}</span>
+
+            <div class="form-group">
+                <label for="expiration_date">Expiration Date:</label>
+                <input type="date" v-model="product.expiration_date" id="expiration_date" class="form-input" required />
             </div>
-            <div class="detail-item">
-                <strong>Expiration Date:</strong> <span>{{ product.expiration_date }}</span>
-            </div>
-        </div>
-        <button class="back-btn" @click="goBack">← Back to Products</button>
+
+            <button type="submit" class="add-btn">Update Product</button>
+        </form>
     </div>
 </template>
 
 <script>
-import { getProductById } from '../services/productService.js';
+import { getProductById, updateProduct } from '../services/productService.js';
 
 export default {
     props: {
@@ -59,8 +70,17 @@ export default {
                 console.error('Error fetching product details:', error.message);
             }
         },
-        goBack() {
-            this.$router.push({ name: 'ListProducts' });
+        async updateProduct() {
+            try {
+                const updatedProduct = {
+                    ...this.product,
+                    active_ingredients: this.product.active_ingredients.split(',').map(ingredient => ingredient.trim()),
+                };
+                await updateProduct(this.productId, updatedProduct);
+                this.$router.push({ name: 'ListProducts' });
+            } catch (error) {
+                console.error('Error updating product:', error.message);
+            }
         },
     },
 };
@@ -84,21 +104,30 @@ export default {
     font-family: Arial, sans-serif;
 }
 
-/* Product Details Styling */
-.product-details {
-    margin-top: 20px;
+/* Form Group Styling */
+.form-group {
+    margin-bottom: 20px;
 }
 
-.detail-item {
-    margin: 10px 0;
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
     font-size: 16px;
 }
 
-/* Back Button Styling */
-.back-btn {
+.form-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Button Styling */
+.add-btn {
     display: block;
-    margin: 20px auto;
-    padding: 10px 20px;
+    width: 100%;
+    padding: 10px 0;
     background-color: #1a1a1a;
     color: white;
     border: none;
@@ -106,7 +135,7 @@ export default {
     cursor: pointer;
 }
 
-.back-btn:hover {
+.add-btn:hover {
     background-color: #333;
 }
 </style>

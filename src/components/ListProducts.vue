@@ -42,7 +42,7 @@
 
                     <template v-slot:item.actions="{ item }">
                         <div class="action-buttons">
-                            <v-btn variant="tonal" color="blue" @click="goToEditPage(item.id)">
+                            <v-btn variant="tonal" color="blue" @click="goToShowPage(item.id)">
                                 <v-icon icon="mdi-pencil"></v-icon>
                             </v-btn>
                             <v-btn variant="tonal" class="ma-2" color="red" @click="deleteProduct(item.id)">
