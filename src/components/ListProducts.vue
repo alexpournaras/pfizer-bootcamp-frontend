@@ -1,4 +1,5 @@
 <template>
+    
     <div class="container">
         <h2 class="title">Products Management</h2>
 
@@ -27,7 +28,7 @@
                         {{ product.name }}
                     </td>
                     <td>{{ product.category }}</td>
-                    <td>{{ product.active_ingredients.join(', ') }}</td>
+                    <td>{{ product.active_ingredients }}</td>
                     <td>{{ product.batch_number }}</td>
                     <td>{{ product.research_status }}</td>
                     <td>{{ product.manufacturing_date }}</td>
@@ -94,8 +95,9 @@ export default {
     margin: auto;
     padding: 20px;
     background-color: #f9f9f9;
-    border-radius: 10px;
+    border-radius: 10 px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 70px; /* Adjust this value as needed */
 }
 
 /* Title Styling */
