@@ -1,7 +1,15 @@
 import apiClient from './api.js';
 
-export const getProducts = () => {
-    return apiClient.get('/products');
+export const getProducts = ({ page, itemsPerPage, search, sortBy, sortOrder }) => {
+    return apiClient.get('/products', {
+        params: {
+            page,
+            itemsPerPage,
+            search,
+            sortBy,
+            sortOrder,
+        },
+    });
 };
 
 export const getProductById = (id) => {
