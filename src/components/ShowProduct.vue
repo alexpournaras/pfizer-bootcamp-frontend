@@ -1,50 +1,118 @@
 <template>
-    <div class="container">
-        <h2 class="title">Product name</h2>
+    <v-container max-width="800px">
+        <v-row>
+            <v-col cols="12" class="text-center">
+                <h2 class="title">Edit Product</h2>
+            </v-col>
 
-        <form v-if="product" @submit.prevent="updateProduct">
-            <div class="form-group">
-                <label for="name">Product Name:</label>
-                <input type="text" v-model="product.name" id="name" class="form-input" required />
-            </div>
+            <!-- Edit Product Form -->
+            <v-form v-if="product" @submit.prevent="validateAndSubmit" ref="form">
+                <!-- Product Name -->
+                <v-col cols="12">
+                    <v-text-field
+                        label="Product Name"
+                        v-model="product.name"
+                        outlined
+                        required
+                        :rules="[rules.required]"
+                    ></v-text-field>
+                </v-col>
 
-            <div class="form-group">
-                <label for="category">Category:</label>
-                <input type="text" v-model="product.category" id="category" class="form-input" required />
-            </div>
+                <!-- Category -->
+                <v-col cols="12">
+                    <v-select
+                        label="Category"
+                        :items="['Capsule', 'Tablet', 'Injection']"
+                        v-model="product.category"
+                        :color="getCategoryColor(product.category)"
+                        outlined
+                        required
+                    ></v-select>
+                </v-col>
 
-            <div class="form-group">
-                <label for="active_ingredients">Active Ingredients (comma-separated):</label>
-                <input type="text" v-model="product.active_ingredients" id="active_ingredients" class="form-input" required />
-            </div>
+                <!-- Active Ingredients -->
+                <v-col cols="12">
+                    <v-text-field
+                        label="Active Ingredients (comma-separated)"
+                        v-model="product.active_ingredients"
+                        outlined
+                        required
+                        :rules="[rules.required]"
+                    ></v-text-field>
+                </v-col>
 
-            <div class="form-group">
-                <label for="batch_number">Batch Number:</label>
-                <input type="text" v-model="product.batch_number" id="batch_number" class="form-input" required />
-            </div>
+                <!-- Batch Number -->
+                <v-col cols="12">
+                    <v-text-field
+                        label="Batch Number"
+                        v-model="product.batch_number"
+                        outlined
+                        required
+                        :rules="[rules.required]"
+                    ></v-text-field>
+                </v-col>
 
-            <div class="form-group">
-                <label for="research_status">Research Status:</label>
-                <input type="text" v-model="product.research_status" id="research_status" class="form-input" required />
-            </div>
+                <!-- Research Status -->
+                <v-col cols="12">
+                    <v-select
+                        label="Research Status"
+                        :items="['In Clinical Trials', 'Completed', 'Under Development']"
+                        v-model="product.research_status"
+                        :color="getStatusColor(product.research_status)"
+                        outlined
+                        required
+                    ></v-select>
+                </v-col>
 
-            <div class="form-group">
-                <label for="manufacturing_date">Manufacturing Date:</label>
-                <input type="date" v-model="product.manufacturing_date" id="manufacturing_date" class="form-input" required />
-            </div>
+                <!-- Manufacturing Date -->
+                <v-col cols="12" md="6">
+                    <v-text-field
+                        label="Manufacturing Date"
+                        v-model="product.manufacturing_date"
+                        type="date"
+                        outlined
+                        required
+                    ></v-text-field>
+                </v-col>
 
-            <div class="form-group">
-                <label for="expiration_date">Expiration Date:</label>
-                <input type="date" v-model="product.expiration_date" id="expiration_date" class="form-input" required />
-            </div>
+                <!-- Expiration Date -->
+                <v-col cols="12" md="6">
+                    <v-text-field
+                        label="Expiration Date"
+                        v-model="product.expiration_date"
+                        type="date"
+                        outlined
+                        required
+                    ></v-text-field>
+                </v-col>
 
-            <button type="submit" class="add-btn">Update Product</button>
-        </form>
-    </div>
+                <!-- Action Buttons -->
+                <v-col cols="12" class="text-center">
+                    <v-btn color="primary" @click="validateAndSubmit" class="mr-4">Save Changes</v-btn>
+                    <v-btn color="red" @click="cancelEdit">Cancel</v-btn>
+                </v-col>
+            </v-form>
+
+            <!-- Snackbar Notification -->
+            <v-snackbar
+                v-model="snackbar"
+                multi-line
+                :color="snackbarColor"
+            >
+                {{ snackbarText }}
+
+                <template v-slot:actions>
+                    <v-btn color="white" variant="text" @click="snackbar = false">
+                        Close
+                    </v-btn>
+                </template>
+            </v-snackbar>
+        </v-row>
+    </v-container>
 </template>
 
 <script>
-import { getProductById, updateProduct } from '../services/productService.js';
+import { getProductById, updateProduct } from "../services/productService.js";
 
 export default {
     props: {
@@ -56,6 +124,12 @@ export default {
     data() {
         return {
             product: null,
+            rules: {
+                required: (value) => !!value || "This field is required",
+            },
+            snackbar: false,
+            snackbarText: '',
+            snackbarColor: '',
         };
     },
     mounted() {
@@ -65,21 +139,89 @@ export default {
         async fetchProductDetails() {
             try {
                 const response = await getProductById(this.productId);
-                this.product = response.data;
+                const productData = response.data;
+
+                this.product = {
+                    ...productData,
+                    manufacturing_date: this.formatDate(productData.manufacturing_date),
+                    expiration_date: this.formatDate(productData.expiration_date),
+                };
             } catch (error) {
-                console.error('Error fetching product details:', error.message);
+                console.error("Error fetching product details:", error.message);
+            }
+        },
+        formatDate(isoDate) {
+            const date = new Date(isoDate);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        },
+        async validateAndSubmit() {
+            const isFormValid = this.$refs.form.validate();
+            if (isFormValid) {
+                if (new Date(this.product.manufacturing_date) > new Date(this.product.expiration_date)) {
+                    this.snackbarText = 'Manufacturing date must be before expiration date.';
+                    this.snackbarColor = 'red';
+                    this.snackbar = true;
+                    return;
+                }
+                await this.updateProduct();
             }
         },
         async updateProduct() {
             try {
                 const updatedProduct = {
                     ...this.product,
-                    active_ingredients: this.product.active_ingredients.split(',').map(ingredient => ingredient.trim()),
+                    active_ingredients: Array.isArray(this.product.active_ingredients)
+                        ? this.product.active_ingredients
+                        : this.product.active_ingredients.split(",").map((ingredient) => ingredient.trim()),
                 };
+
                 await updateProduct(this.productId, updatedProduct);
-                this.$router.push({ name: 'ListProducts' });
+                this.snackbarText = 'Product updated successfully!';
+                this.snackbarColor = 'green';
+                this.snackbar = true;
+                setTimeout(() => {
+                    this.$router.push({ name: "ListProducts" });
+                }, 2000);
             } catch (error) {
-                console.error('Error updating product:', error.message);
+                console.error("Error updating product:", error.message);
+
+                if (error.response && error.response.status === 422) {
+                    const validationErrors = error.response.data.errors;
+
+                    if (validationErrors.name) {
+                        this.snackbarText = 'Product name already exists.';
+                    } else if (validationErrors.batch_number) {
+                        this.snackbarText = 'Batch number already exists.';
+                    } else if (validationErrors.manufacturing_date || validationErrors.expiration_date) {
+                        this.snackbarText = "Manufacturing date must be before expiration date.";
+                    } else {
+                        this.snackbarText = "Couldn't submit the data.";
+                    }
+                    this.snackbarColor = 'red';
+                    this.snackbar = true;
+                }
+            }
+        },
+        cancelEdit() {
+            this.$router.push({ name: "ListProducts" });
+        },
+        getCategoryColor(category) {
+            switch (category) {
+                case "Capsule": return "purple";
+                case "Tablet": return "green";
+                case "Injection": return "orange";
+                default: return "grey";
+            }
+        },
+        getStatusColor(status) {
+            switch (status) {
+                case "In Clinical Trials": return "red";
+                case "Completed": return "green";
+                case "Under Development": return "orange";
+                default: return "grey";
             }
         },
     },
@@ -87,55 +229,9 @@ export default {
 </script>
 
 <style scoped>
-/* Container Styling */
-.container {
-    width: 80%;
-    margin: auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-/* Title Styling */
 .title {
-    text-align: center;
-    margin-bottom: 20px;
     font-family: Arial, sans-serif;
-}
-
-/* Form Group Styling */
-.form-group {
     margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 16px;
-}
-
-.form-input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 16px;
-}
-
-/* Button Styling */
-.add-btn {
-    display: block;
-    width: 100%;
-    padding: 10px 0;
-    background-color: #1a1a1a;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.add-btn:hover {
-    background-color: #333;
 }
 </style>
+
