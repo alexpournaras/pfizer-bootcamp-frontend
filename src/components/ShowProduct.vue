@@ -6,7 +6,7 @@
             </v-col>
 
             <!-- Edit Product Form -->
-            <v-form v-if="product" @submit.prevent="validateAndSubmit" ref="form">
+            <v-form class="edit-form" v-if="product" @submit.prevent="validateAndSubmit" ref="form">
                 <!-- Product Name -->
                 <v-col cols="12">
                     <v-text-field
@@ -65,7 +65,7 @@
                 </v-col>
 
                 <!-- Manufacturing Date -->
-                <v-col cols="12" md="6">
+                <v-col cols="12" md="12">
                     <v-text-field
                         label="Manufacturing Date"
                         v-model="product.manufacturing_date"
@@ -76,7 +76,7 @@
                 </v-col>
 
                 <!-- Expiration Date -->
-                <v-col cols="12" md="6">
+                <v-col cols="12" md="12">
                     <v-text-field
                         label="Expiration Date"
                         v-model="product.expiration_date"
@@ -229,6 +229,10 @@ export default {
 </script>
 
 <style scoped>
+.edit-form {
+    width: 100%;
+}
+
 .title {
     font-family: Arial, sans-serif;
     margin-bottom: 20px;
