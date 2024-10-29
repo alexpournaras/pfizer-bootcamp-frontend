@@ -2,7 +2,7 @@
   <v-layout>
     <v-app-bar color="white" prominent>
       <v-container class="container navbar-container" max-width="1200px">
-        <v-toolbar-title>
+        <v-toolbar-title class="logo-container" @click="goToHome">
           <img class="logo" src="./assets/pfizer-bootcamp.png">
         </v-toolbar-title>
 
@@ -63,5 +63,8 @@ export default {
 .navbar-buttons {
   height: unset !important;
   font-weight: 600;
+}
+.logo-container {
+  cursor: pointer;
 }
 </style>
