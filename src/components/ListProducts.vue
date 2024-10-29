@@ -94,7 +94,7 @@
             </v-col>
 
             <v-col cols="12">
-                <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="serverItems"
+                <v-data-table-server class="products-table" v-model:items-per-page="itemsPerPage" :headers="headers" :items="serverItems"
                     :items-length="totalItems" :loading="loading" :search="searchQuery" item-value="name"
                     @update:options="loadItems">
                     <template v-slot:item.name="{ item }">
@@ -323,5 +323,9 @@ export default {
     .action-buttons {
         justify-content: space-around;
     }
+}
+
+.products-table {
+    word-break: normal !important;
 }
 </style>
